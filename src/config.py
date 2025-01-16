@@ -1,6 +1,10 @@
-BASE_URL = 'https://nlst.cancerimagingarchive.net/nbia-api/services/v1'
+DOWNLOAD_LOG
+ABN_CSV_PATH
+PRSN_CSV_PATH
 
-INPUT_DIR = '../51nodules'
-OUTPUT_DIR = '../out/reports'
+POS_IMAGE_FOLDER
+NEG_IMAGE_FOLDER
+REPORT_FOLDER
+PARQUET_PATH
 
-IMAGE_OUTPUT_DIR = '../out/images'
+BASE_URL

@@ -81,7 +81,8 @@ def retrieve_positive(np_pids, ctab_api_dict, df_ctab):
     global pids_to_remove, no_good_image
     # iterate over pids
     for pid in np_pids:
-        if pid < 113295: continue
+        if pid >= 215347: return
+        if pid < 214184: continue
         print("pid:", pid)
         # getSeries and delete patients without images
         url = f"{BASE_URL}/getSeries"
