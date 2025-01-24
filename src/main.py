@@ -8,21 +8,21 @@ import random
 
 def main():
     abnormalities = pd.read_csv(ABN_CSV_PATH)
-    all_patient_years = set((row['pid'], row['study_yr']) for row in pd.read_csv(PRSN_CSV_PATH, header=['pid', 'study_yr']).rows)
-
-    cvd_pos_list = list(set((row['pid'], row['study_yr']) for row in abnormalities[abnormalities['sct_ab_num'] == 60].rows))
+    all_patient_years = set((row['pid'], row['study_yr']) for _,row in pd.read_csv(PRSN_CSV_PATH, names=['pid', 'study_yr']).iterrows())
+    
+    cvd_pos_list = list(set((row['pid'], row['study_yr']) for _,row in abnormalities[abnormalities['sct_ab_desc'] == 60].iterrows()))
     # avoid all scans where the patient has been labeled CVD positive but not in that year, because their CVD labels are unclear
     cvd_pos_pid = (pid for pid,yr in cvd_pos_list)
     scans_to_avoid = [(pid,yr) for pid,yr in all_patient_years if pid in cvd_pos_pid and (pid,yr) not in cvd_pos_list]
-
+    
     #extract the nodule(lung cancer or not) sclice numbers into a dictionary with (pid,year):[list of lung nodule slice numbers]
     nodule_slice_dict = dict()
-    for _,row in abnormalities[abnormalities['sct_ab_num'] == 51].iterrows:
+    for _,row in abnormalities[abnormalities['sct_ab_desc'] == 51].iterrows():
         if (row['pid'], row['study_yr']) not in nodule_slice_dict.keys():
             nodule_slice_dict[(row['pid'], row['study_yr'])] = []
-        nodule_slice_dict[(row['pid'], row['study_yr'])] = nodule_slice_dict[(row['pid'], row['study_yr'])].append(row['sct_slice_num'])
+        nodule_slice_dict[(row['pid'], row['study_yr'])].append(row['sct_slice_num'])
 
-    lung_pos_list = list(set((row['pid'], row['study_yr']) for row in abnormalities[abnormalities['sct_ab_num'] == 51].rows))
+    lung_pos_list = list(set((row['pid'], row['study_yr']) for _,row in abnormalities[abnormalities['sct_ab_desc'] == 51].iterrows()))
     lung_pos_list = [x for x in lung_pos_list if x not in scans_to_avoid]
 
     # get the list of (pid,yr) that contains positive lung cancer nodules(51 nodules) and download the images to POS_IMAGE_FOLDER
@@ -41,7 +41,7 @@ def main():
     lung_neg_list = [x for x in lung_neg_list if x not in lung_neg_failed]
 
     #generate reports
-    report_composer() # write reports for all scans that contains a nodule
+    # report_composer() # write reports for all scans that contains a nodule
 
     generate_parquet(nodule_slice_dict, lung_pos_list, cvd_pos_pid, lung_neg_cvd_pos_list, lung_neg_list, PARQUET_PATH)
 

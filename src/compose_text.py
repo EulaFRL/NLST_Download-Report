@@ -121,9 +121,8 @@ def write_report(pid, study_yr, content):
     :param report_name: The name of the report file to be written (should include .txt or other file extension).
     :param content: The content to write to the report file.
     """
-    match = re.search(r'\d{1,3}$', slice_n)
-    slice_n = match.group()
-
+    if not os.path.exists(REPORT_FOLDER):
+        os.mkdir(REPORT_FOLDER)
     report_name = str(pid) + "_" + str(study_yr) + ".txt"
     path = os.path.join(REPORT_FOLDER, report_name)
     try:
@@ -185,7 +184,7 @@ def report_composer():
             report = ""
 
             # Header
-            report += row["pid"] + "\n" + "Screening Year: " + str(year) + "\n"
+            # report += row["pid"] + "\n" + "Screening Year: " + str(year) + "\n"
             if row["scr_iso" + str(year)] == "":
                 continue  # Screening marked as failed, generate no report
             report += row["scr_iso" + str(year)] + ".\n"
