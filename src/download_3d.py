@@ -2,6 +2,7 @@
 download 3d series and save with patient id and year in filename for identification
 """
 import logging
+import shutil
 import pydicom
 import numpy as np
 import os
@@ -61,10 +62,10 @@ def get_series_list(patient_id):
     url = f"{BASE_URL}/getSeries"
     params = {'PatientID': patient_id}
     response = requests.get(url, params=params)
-
     if response.status_code == 200:
         return response.json()
     else:
+        print(url,params)
         logging.error(f"Failed to fetch series for Patient ID {patient_id}. Status code: {response.status_code}")
         return []
 
@@ -129,9 +130,7 @@ def download_helper(series_instance_uid, output_dir):
 def dicom2Npy(dicom_folder, npy_folder, de=False):
     """ stores one 3D dicom series as one .npy file"""
     slice_dir_list = os.listdir(dicom_folder)
-    if '.DS_Store' in slice_dir_list:
-        slice_dir_list.remove('.DS_Store')
-    dicom_files = [pydicom.dcmread(os.path.join(dicom_folder, slice_dir)) for slice_dir in slice_dir_list]
+    dicom_files = [pydicom.dcmread(os.path.join(dicom_folder, slice_dir)) for slice_dir in slice_dir_list if slice_dir.endswith('.dcm')]
     
     dicom_files.sort(key = lambda x : x.InstanceNumber) #InstanceNumber is an attribute of a dicom image that indicates its position in a series
     dicom_pixelArrays = [ds.pixel_array for ds in dicom_files] #extracts the image from the dicom files as 2D pixel arrays
@@ -142,7 +141,8 @@ def dicom2Npy(dicom_folder, npy_folder, de=False):
     np.save(os.path.join(npy_folder,npy_name), volume)
 
     if de:
-        os.remove(dicom_folder)
+        shutil.rmtree(dicom_folder)
+        print(f"DICOM folder {dicom_folder} has been deleted.")
 
 def dicom2Nifti(dicom_folder, output_nifti_folder, voxel_size=(1.0, 1.0, 1.0), de=False):
     """
@@ -151,9 +151,7 @@ def dicom2Nifti(dicom_folder, output_nifti_folder, voxel_size=(1.0, 1.0, 1.0), d
     try:
         # Get all DICOM files in the folder
         slice_dir_list = os.listdir(dicom_folder)
-        if '.DS_Store' in slice_dir_list:
-            slice_dir_list.remove('.DS_Store')
-        dicom_files = [pydicom.dcmread(os.path.join(dicom_folder, slice_dir)) for slice_dir in slice_dir_list]
+        dicom_files = [pydicom.dcmread(os.path.join(dicom_folder, slice_dir)) for slice_dir in slice_dir_list if slice_dir.endswith('.dcm')]
 
         # Sort DICOM files by InstanceNumber to ensure proper stack order
         dicom_files.sort(key=lambda x: x.InstanceNumber)
@@ -176,7 +174,7 @@ def dicom2Nifti(dicom_folder, output_nifti_folder, voxel_size=(1.0, 1.0, 1.0), d
 
         # Optionally delete the original DICOM folder
         if de:
-            os.rmdir(dicom_folder)
+            shutil.rmtree(dicom_folder)
             print(f"DICOM folder {dicom_folder} has been deleted.")
 
     except Exception as e:
